@@ -129,9 +129,12 @@ void loop()
 
     String doc_path = "projects/welove-project/databases/(default)/documents/tempat_sampah/003060576023";
     updateSampahTelahMasuk.set("fields/sampah masuk/integerValue", "123");
-    if (Firebase.Firestore.commitDocument(&fbdo, FIREBASE_PROJECT_ID, "" /* databaseId can be (default) or empty */, writes /* dynamic array of fb_esp_firestore_document_write_t */, "" /* transaction */))
-      Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
-    else
-      Serial.println(fbdo.errorReason());
+    // dibawah ini adalah kode untuk mengirimkan data dari arduino uno ke firebase
+    // yang mengirimkan data bahwa sampah telah masuk
+    // namun belum saya selesaikan karena masih mengalami error (baca lagi dokumentasi resminya)
+    // if (Firebase.Firestore.commitDocument(&fbdo, FIREBASE_PROJECT_ID, "" /* databaseId can be (default) or empty */, writes /* dynamic array of fb_esp_firestore_document_write_t */, "" /* transaction */))
+    //   Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
+    // else
+    //   Serial.println(fbdo.errorReason());
   }
 }
