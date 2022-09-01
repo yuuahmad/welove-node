@@ -12,8 +12,8 @@
 #include <ESP8266WiFi.h>
 #endif
 #include <Firebase_ESP_Client.h>
-#define WIFI_SSID "KONTRAKAN UYE"
-#define WIFI_PASSWORD "KUSANG123"
+#define WIFI_SSID "Smart Biogas"
+#define WIFI_PASSWORD "Smartbiogas01"
 /* 2. Define the API Key */
 #define API_KEY "AIzaSyD-zBPeBJjG4wHr7YVYbEqHcfFwYlIMf6U"
 /* 3. Define the project ID */
@@ -38,10 +38,11 @@ FirebaseJson json;
 FirebaseJson updateSampahTelahMasuk;
 // data untuk mengonto dan mengirim ke firebase firestore
 unsigned long dataMillis = 0;
-int count = 0;
+// int count = 0;
 // buat variabel bool untuk parsing data.
 bool parsing = false;
 String sData, data[10];
+// inisialisasi nilai masuk sebagai int, tapi kirim ke firebase dalam bentuk bool
 int isMasuk = 0;
 
 void setup()
@@ -61,8 +62,7 @@ void setup()
 
 void loop()
 {
-
-  // program untuk mendapatkan nilai sampah telah masuk
+  // program untuk mendapatkan nilai sampah telah masuk dari arduino uno
   // dan mengirimkan datanya ke firestore
   while (Serial.available())
   {
@@ -94,22 +94,23 @@ void loop()
   }
 
   // Firebase.ready() should be called repeatedly to handle authentication tasks.
-  if (Firebase.ready() && (millis() - dataMillis > 5000 || dataMillis == 0))
+  // program dibawah untuk mendadpatkan data dari firebase dan mengirimkannya ke arduino uno
+  if (Firebase.ready() && (millis() - dataMillis > 1000 || dataMillis == 0))
   {
     dataMillis = millis();
     String documentPath = "tempat_sampah/4a34a5b3e6f797a3a930e7e5a98ef0cb";
-    String documentPath2 = "tempat_sampah/003060576023";
+    // String documentPath2 = "aa/bb";
 
     if (Firebase.Firestore.getDocument(&fbdo, FIREBASE_PROJECT_ID, "", documentPath.c_str(), ""))
     {
       String dataSaya = fbdo.payload().c_str();
       json.setJsonData(dataSaya);
-      json.get(isReady, "fields/is ready/booleanValue");
-      json.get(sensorReady, "fields/sensor ready/booleanValue");
-      json.get(emailUser, "fields/email user/stringValue");
-      json.get(warnaR, "fields/warna r/integerValue");
-      json.get(warnaG, "fields/warna g/integerValue");
-      json.get(warnaB, "fields/warna b/integerValue");
+      json.get(isReady, "fields/isReady/booleanValue");
+      json.get(sensorReady, "fields/sensorReady/booleanValue");
+      json.get(emailUser, "fields/emailUser/stringValue");
+      json.get(warnaR, "fields/warnaR/integerValue");
+      json.get(warnaG, "fields/warnaG/integerValue");
+      json.get(warnaB, "fields/warnaB/integerValue");
       Serial.print("#");
       Serial.print(isReady.to<bool>());
       Serial.print("#");
@@ -127,14 +128,16 @@ void loop()
     else
       Serial.println("#######$");
 
-    String doc_path = "projects/welove-project/databases/(default)/documents/tempat_sampah/003060576023";
-    updateSampahTelahMasuk.set("fields/sampah masuk/integerValue", "123");
-    // dibawah ini adalah kode untuk mengirimkan data dari arduino uno ke firebase
-    // yang mengirimkan data bahwa sampah telah masuk
-    // namun belum saya selesaikan karena masih mengalami error (baca lagi dokumentasi resminya)
-    // if (Firebase.Firestore.commitDocument(&fbdo, FIREBASE_PROJECT_ID, "" /* databaseId can be (default) or empty */, writes /* dynamic array of fb_esp_firestore_document_write_t */, "" /* transaction */))
-    //   Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
-    // else
-    //   Serial.println(fbdo.errorReason());
+    // program untuk mengirim data yang dibaca dari arduino uno ke firebase lewat esp01 semoga saja program ini berhasil.
+    updateSampahTelahMasuk.clear();
+    if (isMasuk == 1)
+      updateSampahTelahMasuk.set("fields/isMasuk/booleanValue", true);
+    else
+      updateSampahTelahMasuk.set("fields/isMasuk/booleanValue", false);
+
+    if (Firebase.Firestore.patchDocument(&fbdo, FIREBASE_PROJECT_ID, "" /* databaseId can be (default) or empty */, documentPath.c_str(), updateSampahTelahMasuk.raw(), "isMasuk" /* updateMask */))
+      Serial.printf("ok\n%s\n\n", fbdo.payload().c_str());
+    else
+      Serial.println(fbdo.errorReason());
   }
 }
